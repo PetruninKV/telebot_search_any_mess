@@ -15,6 +15,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from lexicon.lexicon import LEXICON, LEXICON_CALLBACK
 from database.database import user_dict_template, users_db
 from key_boards.load_chats_and_words_kb import create_load_data
+from filters.filters_for_load_data import IsListChannels, IsListKeywords
 
 
 class FSMGetData(StatesGroup):
@@ -67,10 +68,11 @@ async def load_channels_callback(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMGetData.get_channels)
 
 
-@router.message(StateFilter(FSMGetData.get_channels), F.text.isalpha()) # написать фильтр для проверки списка состоящего из ссылок
-async def processing_channels_sent(message: Message, state: FSMContext):
+@router.message(StateFilter(FSMGetData.get_channels), F.text, IsListChannels()) # написать фильтр для проверки списка состоящего из ссылок
+async def processing_channels_sent(message: Message, state: FSMContext, channels: list[dict]):
+    # text = ("\n".join(channel for channel in channels))
     await message.answer(text='корректно')
-    await state.update_data(list_chats=message.text)
+    await state.update_data(list_chats=channels)
     await message.answer(text=LEXICON['succes_load_channels'], reply_markup=create_load_data('load_keywords'))
     
 
