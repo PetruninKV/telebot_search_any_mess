@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher
 
 from config_data.config import Config, load_config
 from key_boards.main_menu import set_main_menu
+from handlers import user_handlers
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,8 @@ async def main():
     dp: Dispatcher = Dispatcher()
 
     await set_main_menu(bot)
+
+    dp.include_router(user_handlers.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
