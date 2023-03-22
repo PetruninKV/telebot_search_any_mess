@@ -1,8 +1,11 @@
+from copy import deepcopy
+
 from aiogram import Router
 from aiogram.filters import CommandStart, Command, Text
 from aiogram.types import Message
 
 from lexicon.lexicon import LEXICON
+from database.database import user_dict_template, users_db
 
 router: Router = Router()
 
@@ -10,6 +13,9 @@ router: Router = Router()
 @router.message(CommandStart())
 async def processing_start_command(message: Message):
     await message.answer(text=LEXICON['/start'])
+    if message.from_user.id not in users_db:
+        users_db[message.from_user.id] = deepcopy(user_dict_template)
+        print(users_db)
 
 
 @router.message(Command(commands='about'))
