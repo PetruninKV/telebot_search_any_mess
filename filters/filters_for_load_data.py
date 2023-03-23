@@ -19,8 +19,8 @@ class IsListKeywords(BaseFilter):
         keywords = []
         # print(message.text.split('\n'))
         for keyword in message.text.split('\n'):
-            keywords.append(keyword)
-        
+            keywords.append(keyword.strip())
+        # print(keywords)
         if keywords:
             return {'keywords': keywords}
         return False
