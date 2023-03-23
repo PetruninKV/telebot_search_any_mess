@@ -4,7 +4,7 @@ from lexicon.lexicon import LEXICON_KEYBOARDS
 
 
 
-def create_load_data(button: str) -> InlineKeyboardMarkup:
+def create_one_button_kb(button: str) -> InlineKeyboardMarkup:
     kb_builder: InlineKeyboardBuilder = InlineKeyboardBuilder()
     kb_builder.row(InlineKeyboardButton(text=LEXICON_KEYBOARDS[button] 
                                          if button in LEXICON_KEYBOARDS else button,

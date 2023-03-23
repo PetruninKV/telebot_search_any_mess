@@ -6,11 +6,10 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from config_data.config import Config, load_config
 from key_boards.main_menu import set_main_menu
-from handlers import user_handlers, other_handlers
+from handlers import other_handlers, pre_settings_handlers
 
 
 logger = logging.getLogger(__name__)
-
 
 
 async def main():
@@ -30,7 +29,7 @@ async def main():
 
     await set_main_menu(bot)
 
-    dp.include_router(user_handlers.router)
+    dp.include_router(pre_settings_handlers.router)
     dp.include_router(other_handlers.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
