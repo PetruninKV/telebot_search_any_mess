@@ -19,10 +19,7 @@ class FSMClientWork(StatesGroup):
     work_on = State()
 
 
-
 router: Router = Router()
-
-
 
 
 @router.message(Command(commands='look'), StateFilter(default_state))
@@ -48,19 +45,18 @@ async def work_on_callback(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Text(text=LEXICON_KEYBOARDS['go_forward_messages']), StateFilter(FSMClientWork.setting_work))
 async def processing_go_forward(message: Message, state: FSMContext):
-    print('processing_go_forward')
+    await message.answer(text='Запущен процесс отслеживания новых сообщений!')
     await state.set_state(FSMClientWork.work_on)
 
 
 @router.message(Text(text=LEXICON_KEYBOARDS['stop_forward_messages']), StateFilter(FSMClientWork.work_on))
 async def processing_stop_forward(message: Message, state: FSMContext):
-    print('processing_stop_forward')
+    await message.answer(text='Остановлен процесс отслеживания новых сообщений!')
     await state.set_state(FSMClientWork.setting_work)
 
 
 @router.message(Text(text='Выйти'), StateFilter(FSMClientWork.setting_work, FSMClientWork.work_on))
 async def processing_exit(message: Message, state: FSMContext):
-    print('processing_exit')
-    await message.answer(text='удалить ', reply_markup=ReplyKeyboardRemove(selective=True))
-    print('!!!!!!!!!!!!')
+    await message.answer(text='Вы вышли из режима работы бота ', reply_markup=ReplyKeyboardRemove(selective=True))
     await state.clear()
+    
