@@ -1,4 +1,4 @@
-user_dict_template: dict = {'list_chats': set(),
+user_dict_template: dict = {'list_channels': set(),
                             'list_keywords': set()}
 
 
