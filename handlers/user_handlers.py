@@ -9,7 +9,7 @@ from aiogram.filters import StateFilter
 from aiogram.filters.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
-from aiogram.fsm.storage.memory import MemoryStorage
+# from aiogram.fsm.storage.memory import MemoryStorage
 
 
 from lexicon.lexicon import LEXICON, LEXICON_CALLBACK
@@ -68,11 +68,11 @@ async def load_channels_callback(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMGetData.get_channels)
 
 
-@router.message(StateFilter(FSMGetData.get_channels), F.text, IsListChannels()) # написать фильтр для проверки списка состоящего из ссылок
+@router.message(StateFilter(FSMGetData.get_channels), F.text, IsListChannels())
 async def processing_channels_sent(message: Message, state: FSMContext, channels: list[dict]):
     # text = ("\n".join(channel for channel in channels))
     await message.answer(text='корректно')
-    await state.update_data(list_chats=channels)
+    await state.update_data(list_channels=channels)
     await message.answer(text=LEXICON['succes_load_channels'], reply_markup=create_load_data('load_keywords'))
     
 
@@ -87,15 +87,15 @@ async def load_keywords_callback(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMGetData.get_keywords)
 
 
-@router.message(StateFilter(FSMGetData.get_keywords), F.text.isdigit()) # написать фильтр для проверки списка состоящего ключевых слов
-async def processing_keywords_sent(message: Message, state: FSMContext):
+@router.message(StateFilter(FSMGetData.get_keywords), F.text, IsListKeywords() ) # написать фильтр для проверки списка состоящего ключевых слов
+async def processing_keywords_sent(message: Message, state: FSMContext, keywords: list[dict]):
     await message.answer(text='корректно')
-    await state.update_data(list_keywords=message.text)
+    await state.update_data(list_keywords=keywords)
     await message.answer(text=LEXICON['succes_load_keywords'])
     users_db[message.from_user.id] = await state.get_data()
     await state.clear()
-    await message.answer(text='чтобы посмотреть списки выполните команду /look')
-    print(users_db[message.from_user.id])
+    await message.answer(text=LEXICON['check_lists'])
+
 
 
 @router.message(StateFilter(FSMGetData.get_keywords))
@@ -103,17 +103,12 @@ async def processing_channels_sent(message: Message, state: FSMContext):
     await message.answer(text='не корректно')
 
 
-
-
-
-# @router.message(Command(commands='send_channels'))
-# async def processing_send_channels_command(message: Message):
-#     await message.answer(text=LEXICON['/send_channels'])
-
-
-# @router.message(Command(commands='send_words'))
-# async def processing_send_words_command(message: Message):
-#     await message.answer(text=LEXICON['/send_words'])
+@router.message(Command(commands='look'))
+async def procassing_look_command(message: Message):
+    list_channels = users_db[message.from_user.id]['list_channels']
+    list_keywords = users_db[message.from_user.id]['list_keywords']
+    await message.answer(text=list_channels)
+    await message.answer(text=list_keywords)
 
 
 @router.message(Command(commands='help'))

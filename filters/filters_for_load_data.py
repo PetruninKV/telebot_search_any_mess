@@ -17,8 +17,10 @@ class IsListChannels(BaseFilter):
 class IsListKeywords(BaseFilter):
     async def __call__(self, message: Message) -> bool | dict[str, list[str]]:
         keywords = []
+        # print(message.text.split('\n'))
         for keyword in message.text.split('\n'):
             keywords.append(keyword)
         
         if keywords:
             return {'keywords': keywords}
+        return False
