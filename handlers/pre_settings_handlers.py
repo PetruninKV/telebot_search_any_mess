@@ -22,7 +22,7 @@ class FSMGetData(StatesGroup):
     get_channels = State()
     get_keywords = State()
 
-231
+
 router: Router = Router()
 
 
@@ -66,6 +66,11 @@ async def load_channels_callback(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMGetData.get_channels)
 
 
+@router.message(Command(commands='help'), StateFilter(FSMGetData.get_channels, FSMGetData.get_keywords)) # 
+async def processing_help_command(message: Message):
+    await message.answer(text='Команда /cancel для отмены ввода данных без сохранения')
+    
+
 @router.message(StateFilter(FSMGetData.get_channels), F.text, IsListChannels())
 async def processing_channels_sent(message: Message, state: FSMContext, channels: list[dict]):
     # text = ("\n".join(channel for channel in channels))
@@ -95,22 +100,11 @@ async def processing_keywords_sent(message: Message, state: FSMContext, keywords
     await message.answer(text=LEXICON['check_lists'])
 
 
-
 @router.message(StateFilter(FSMGetData.get_keywords))
 async def processing_channels_sent(message: Message, state: FSMContext):
     await message.answer(text='не корректно')
 
 
-@router.message(Command(commands='look'))
-async def procassing_look_command(message: Message):
-    list_channels = users_db[message.from_user.id]['list_channels']
-    list_keywords = users_db[message.from_user.id]['list_keywords']
-    await message.answer(text=list_channels)
-    await message.answer(text=list_keywords)
-    await message.answer(text=LEXICON['/look'])
-    
-
-
-@router.message(Command(commands='help'))
+@router.message(Command(commands='help'), StateFilter(default_state))
 async def processing_help_command(message: Message):
     await message.answer(text=LEXICON['/help'])
