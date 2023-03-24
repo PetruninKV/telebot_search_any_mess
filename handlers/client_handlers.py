@@ -12,7 +12,7 @@ from aiogram.fsm.state import default_state
 from lexicon.lexicon import LEXICON, LEXICON_KEYBOARDS
 from database.database import users_db
 from key_boards.any_keyboards import create_one_button_kb, create_regular_keyboard
-
+from client.client_tg import join_chats_request
 
 class FSMClientWork(StatesGroup):
     setting_work = State()
@@ -24,11 +24,13 @@ router: Router = Router()
 
 @router.message(Command(commands='look'), StateFilter(default_state))
 async def processing_look_command(message: Message):
+    no_complete = await join_chats_request(users_db[message.from_user.id]['list_channels'])
     strk_channels = '\n'.join(users_db[message.from_user.id]['list_channels'])
     strk_keywords = '\n'.join(users_db[message.from_user.id]['list_keywords'])
-    await message.answer(text=f"Будут отслуживаться чаты:\n<pre>{strk_channels}</pre>") #
+    await message.answer(text=f"Будут отслуживаться чаты:\n<pre>{strk_channels}</pre>"
+                                "\nКроме:\n {no_complete}") #
     await message.answer(text=f"По наличию в сообщениях ключевых слов:\n<pre>{strk_keywords}</pre>")
-    await message.answer(text=LEXICON['/look'], reply_markup=create_one_button_kb('work_on'))
+    await message.answer(text=LEXICON['/look'], reply_markup=create_one_button_kb('setting_work'))
 
 
 @router.callback_query(Text(text='work_on'), StateFilter(default_state))
