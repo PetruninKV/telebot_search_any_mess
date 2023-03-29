@@ -1,3 +1,5 @@
+import threading
+
 from aiogram import Router
 
 from aiogram.filters import Command, Text
@@ -12,7 +14,8 @@ from aiogram.fsm.state import default_state
 from lexicon.lexicon import LEXICON, LEXICON_KEYBOARDS
 from database.database import users_db
 from key_boards.any_keyboards import create_one_button_kb, create_regular_keyboard
-from client.client_tg import join_chats_request
+from client.client_tg import join_channels_request
+from client.work_client import search_messages
 
 class FSMClientWork(StatesGroup):
     setting_work = State()
@@ -24,16 +27,19 @@ router: Router = Router()
 
 @router.message(Command(commands='look'), StateFilter(default_state))
 async def processing_look_command(message: Message):
-    no_complete = await join_chats_request(users_db[message.from_user.id]['list_channels'])
+    await message.answer(text='Загружаю чаты и ключевые слова...')
+    no_complete = await join_channels_request(users_db[message.from_user.id]['list_channels'])
+    #удалить сообщение
+
     strk_channels = '\n'.join(users_db[message.from_user.id]['list_channels'])
     strk_keywords = '\n'.join(users_db[message.from_user.id]['list_keywords'])
     await message.answer(text=f"Будут отслуживаться чаты:\n<pre>{strk_channels}</pre>"
-                                "\nКроме:\n {no_complete}") #
+                              f"\nКроме:\n {no_complete}") #
     await message.answer(text=f"По наличию в сообщениях ключевых слов:\n<pre>{strk_keywords}</pre>")
     await message.answer(text=LEXICON['/look'], reply_markup=create_one_button_kb('setting_work'))
 
 
-@router.callback_query(Text(text='work_on'), StateFilter(default_state))
+@router.callback_query(Text(text='setting_work'), StateFilter(default_state))
 async def work_on_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await callback.message.answer(text='Пользуйтесь кнопками для управления пересылкой сообщений. '
@@ -47,18 +53,24 @@ async def work_on_callback(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Text(text=LEXICON_KEYBOARDS['go_forward_messages']), StateFilter(FSMClientWork.setting_work))
 async def processing_go_forward(message: Message, state: FSMContext):
+    await state.set_state(FSMClientWork.work_on)    
+    users_db[message.from_user.id]['work_on'] = True
     await message.answer(text='Запущен процесс отслеживания новых сообщений!')
-    await state.set_state(FSMClientWork.work_on)
+    await search_messages(message.from_user.id)
+    
 
 
 @router.message(Text(text=LEXICON_KEYBOARDS['stop_forward_messages']), StateFilter(FSMClientWork.work_on))
 async def processing_stop_forward(message: Message, state: FSMContext):
+    users_db[message.from_user.id]['work_on'] = False
     await message.answer(text='Остановлен процесс отслеживания новых сообщений!')
     await state.set_state(FSMClientWork.setting_work)
 
 
 @router.message(Text(text='Выйти'), StateFilter(FSMClientWork.setting_work, FSMClientWork.work_on))
 async def processing_exit(message: Message, state: FSMContext):
-    await message.answer(text='Вы вышли из режима работы бота ', reply_markup=ReplyKeyboardRemove(selective=True))
+    await message.answer(text='Вы вышли из режима работы бота.\n'
+                              'Процесс отслеживания новых сообщений остановлен!',
+                         reply_markup=ReplyKeyboardRemove(selective=True))
     await state.clear()
     
