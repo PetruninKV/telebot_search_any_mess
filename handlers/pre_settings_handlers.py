@@ -31,7 +31,7 @@ async def processing_start_command(message: Message):
     await message.answer(text=LEXICON['/start'])
     if message.from_user.id not in users_db:
         users_db[message.from_user.id] = deepcopy(user_dict_template)
-        print(users_db)
+
 
 
 @router.message(Command(commands='cancel'), StateFilter(default_state))
