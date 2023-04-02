@@ -8,6 +8,7 @@ from telethon.tl.types import Message
 
 from config_data.config import Config, load_config
 from database.database import users_db
+from database import redis_db
 
 
 config: Config = load_config()
@@ -96,7 +97,7 @@ async def search_messages(user_id):
 
     last_messages_of_chats: dict[str, int] = await session.create_dict_of_chats()
     count = 1
-    while users_db[user_id]['work_on']:
+    while redis_db.get_status(user_id):
             for id_chat, id_last_sent_mes in last_messages_of_chats.items():
                 id_last_message = await session.find_id_last_message(peer=id_chat)
                 number_of_new_message = id_last_message - id_last_sent_mes
@@ -115,8 +116,8 @@ async def search_messages(user_id):
                                 print(' Cообщение не подходит.')                
 
             await asyncio.sleep(10)
-            print(count, ':', users_db[user_id]['work_on'])
+            print(count, ':', 'work_on')
             count += 1
+    print('work_off')
     await session.stop()
     print('ВЫХОД', user_id)
-
