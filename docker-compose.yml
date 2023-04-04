@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  redis:
+    container_name: redis
+    image: redis:latest
+
+  telegram_bot:
+    container_name: search_any_mess
+    command: python3.10 ./bot/bot.py
+    restart: always
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    tty: true
