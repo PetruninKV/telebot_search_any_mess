@@ -5,22 +5,26 @@ from telethon import TelegramClient
 from telethon import functions
 
 from telethon.tl.types import Message
+from telethon.sessions import StringSession
 
 from config_data.config import Config, load_config
 from database.database import users_db
+from database import redis_db
 
 
 config: Config = load_config()
 api_id = config.tg_client.api_id
 api_hash = config.tg_client.api_hash
+session_string = config.tg_client.session_string
 
 
 class ClientTg:
-    def __init__(self, name: int, api_id: str, api_hash: str):
+    def __init__(self, session_string: str, name: int, api_id: str, api_hash: str):
         self.user = name
         self.api_id = api_id
         self.api_hash = api_hash
-        self.client = TelegramClient('ClientTg', api_id, api_hash)
+        self.session_string = session_string
+        self.client = TelegramClient(StringSession(session_string), api_id, api_hash)
         self.peers = users_db[name]['list_channels']
         self.keywords = users_db[name]['list_keywords']
 
@@ -91,12 +95,12 @@ class ClientTg:
 
 async def search_messages(user_id):
     print('ВХОД', user_id)
-    session: ClientTg = ClientTg(user_id, api_id, api_hash)
+    session: ClientTg = ClientTg(session_string, user_id, api_id, api_hash)
     await session.start()
 
     last_messages_of_chats: dict[str, int] = await session.create_dict_of_chats()
     count = 1
-    while users_db[user_id]['work_on']:
+    while redis_db.get_status(user_id):
             for id_chat, id_last_sent_mes in last_messages_of_chats.items():
                 id_last_message = await session.find_id_last_message(peer=id_chat)
                 number_of_new_message = id_last_message - id_last_sent_mes
@@ -115,8 +119,8 @@ async def search_messages(user_id):
                                 print(' Cообщение не подходит.')                
 
             await asyncio.sleep(10)
-            print(count, ':', users_db[user_id]['work_on'])
+            print(count, ':', 'work_on')
             count += 1
+    print('work_off')
     await session.stop()
     print('ВЫХОД', user_id)
-

@@ -19,8 +19,13 @@ class IsListKeywords(BaseFilter):
         keywords = []
         # print(message.text.split('\n'))
         for keyword in message.text.split('\n'):
-            keywords.append(keyword.strip())
+            keywords.append(keyword.lower().strip())
         # print(keywords)
         if keywords:
             return {'keywords': keywords}
         return False
+    
+
+class IsAdmin(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        pass

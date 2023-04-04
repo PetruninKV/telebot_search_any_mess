@@ -1,8 +1,9 @@
 import asyncio
-from telethon import TelegramClient
 
+from telethon import TelegramClient
 from telethon.tl.types import InputPeerChannel
 from telethon.tl.functions.channels import JoinChannelRequest
+from telethon.sessions import StringSession
 
 from config_data.config import Config, load_config
 
@@ -10,10 +11,11 @@ from config_data.config import Config, load_config
 config: Config = load_config()
 api_id = config.tg_client.api_id
 api_hash = config.tg_client.api_hash
+session_string = config.tg_client.session_string
 
 
 async def join_channels_request(channels: list) -> None | list[str]:
-    async with TelegramClient('ClientTg', api_id, api_hash) as client:
+    async with TelegramClient(StringSession(session_string), api_id, api_hash) as client:
         client: TelegramClient
         print('вход')
         error_join_channels = []

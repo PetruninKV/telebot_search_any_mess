@@ -9,13 +9,12 @@ from aiogram.filters import StateFilter
 from aiogram.filters.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
-# from aiogram.fsm.storage.memory import MemoryStorage
-
 
 from lexicon.lexicon import LEXICON, LEXICON_CALLBACK
 from database.database import user_dict_template, users_db
 from key_boards.any_keyboards import create_one_button_kb
-from filters.filters_for_load_data import IsListChannels, IsListKeywords
+from filters.filters import IsListChannels, IsListKeywords
+
 
 
 class FSMGetData(StatesGroup):
@@ -32,6 +31,7 @@ async def processing_start_command(message: Message):
     if message.from_user.id not in users_db:
         users_db[message.from_user.id] = deepcopy(user_dict_template)
 
+    
 
 
 @router.message(Command(commands='cancel'), StateFilter(default_state))
